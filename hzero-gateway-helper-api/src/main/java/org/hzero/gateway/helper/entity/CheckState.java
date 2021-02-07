@@ -132,6 +132,14 @@ public final class CheckState {
      * 分配角色过期
      */
     public static final CheckState MEMBER_ROLE_EXPIRED = new CheckState(418, "error.permission.memberRoleExpired", "MEMBER_ROLE_EXPIRED");
+    /**
+     * 没有角色
+     */
+    public static final CheckState ROLE_IS_EMPTY = new CheckState(419, "error.permission.roleIsEmpty", "ROLE_IS_EMPTY");
+    /**
+     * 重放请求
+     */
+    public static final CheckState REQUEST_REPEAT = new CheckState(425, "error.request.repeat", "REQUEST_REPEAT");
 
     /**
      * 访问过于频繁

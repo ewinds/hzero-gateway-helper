@@ -3,6 +3,7 @@ package org.hzero.gateway.helper.filter;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,6 +95,12 @@ public class AdminRolePermissionFilter implements HelperFilter, InitializingBean
             memberId = details.getUserId();
             roleIds = details.roleMergeIds();
             memberType = "user";
+        }
+
+        if (CollectionUtils.isEmpty(roleIds)) {
+            context.response.setStatus(CheckState.ROLE_IS_EMPTY);
+            context.response.setMessage("Member [" + memberId + "] have no roles");
+            return false;
         }
 
         boolean isSiteSuperRole = roleIds.contains(siteSuperAdminRoleId);

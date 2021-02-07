@@ -206,6 +206,14 @@ public class GetUserDetailsServiceImpl implements GetUserDetailsService {
             if (map.containsKey("apiEncryptFlag")) {
                 user.setApiEncryptFlag((Integer) map.get("apiEncryptFlag"));
             }
+            if (map.get("roleLabels") != null) {
+                Object roleLabels = map.get("roleLabels");
+                if (roleLabels instanceof Collection) {
+                    @SuppressWarnings("rawtypes")
+                    Collection<Object> labels = (Collection) roleLabels;
+                    user.setRoleLabels(labels.stream().map(String::valueOf).collect(Collectors.toSet()));
+                }
+            }
 
             if (isClientOnly) {
                 user.setClientId(Long.parseLong(String.valueOf(map.get("clientId"))));

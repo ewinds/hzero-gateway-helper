@@ -24,7 +24,7 @@
 
     <!-- 返回的 source_id 代表 成员分配的角色有此API的权限，返回角色的租户 -->
     <select id="selectSourceIdsByMemberAndRole" resultType="java.lang.Long">
-        <bind name="now" value="@java.time.LocalDate@now().toString()" />
+        <bind name="now" value="@java.time.LocalDate@now()" />
         SELECT
             imr.source_id
         FROM iam_member_role imr
@@ -144,8 +144,8 @@
         <bind name="tenantSuperRole" value="@org.hzero.common.HZeroConstant$RoleCode@TENANT"/>
         select
             id,
-            code as code,
-            name as name,
+            code as "code",
+            name as "name",
             fd_level as fd_level
         from iam_role
         where is_enabled = 1
@@ -154,7 +154,7 @@
     </select>
 
     <select id="countAvailableRole" resultType="java.lang.Integer">
-        <bind name="now" value="@java.time.LocalDate@now().toString()" />
+        <bind name="now" value="@java.time.LocalDate@now()" />
         select
             count(1)
         from iam_member_role imr

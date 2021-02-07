@@ -118,7 +118,7 @@ public class GatewayHelperProperties {
 
         private List<String> skipPaths = Arrays.asList("/**/skip/**", "/oauth/**");
 
-        private List<String> internalPaths = Arrays.asList("/oauth/admin/**", "/oauth/api/**", "/v2/choerodon/api-docs");
+        private List<String> internalPaths = Arrays.asList("/oauth/admin/**", "/oauth/api/**", "/oauth/v2/market/**", "/v2/choerodon/api-docs");
 
         private Long cacheSeconds = 600L;
 
@@ -255,6 +255,8 @@ public class GatewayHelperProperties {
 
         private MenuPermission menuPermission = new MenuPermission();
 
+        private ApiReplay apiReplay = new ApiReplay();
+
         public CollectSpan getCollectSpan() {
             return collectSpan;
         }
@@ -277,6 +279,14 @@ public class GatewayHelperProperties {
 
         public void setMenuPermission(MenuPermission menuPermission) {
             this.menuPermission = menuPermission;
+        }
+
+        public ApiReplay getApiReplay() {
+            return apiReplay;
+        }
+
+        public void setApiReplay(ApiReplay apiReplay) {
+            this.apiReplay = apiReplay;
         }
 
         public static class CollectSpan {
@@ -384,5 +394,29 @@ public class GatewayHelperProperties {
             }
         }
 
+        public static class ApiReplay {
+            /**
+             * 是否启用api防重放校验
+             */
+            private boolean enabled = false;
+
+            private List<String> skipPaths = new ArrayList<>();
+
+            public boolean isEnabled() {
+                return enabled;
+            }
+
+            public void setEnabled(boolean enabled) {
+                this.enabled = enabled;
+            }
+
+            public List<String> getSkipPaths() {
+                return skipPaths;
+            }
+
+            public void setSkipPaths(List<String> skipPaths) {
+                this.skipPaths = skipPaths;
+            }
+        }
     }
 }

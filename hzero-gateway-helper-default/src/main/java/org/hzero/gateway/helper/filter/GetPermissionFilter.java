@@ -12,6 +12,8 @@ import org.hzero.gateway.helper.entity.CheckState;
 import org.hzero.gateway.helper.entity.PermissionDO;
 import org.hzero.gateway.helper.entity.RequestContext;
 import org.hzero.gateway.helper.service.PermissionService;
+import org.hzero.starter.keyencrypt.core.EncryptContext;
+import org.hzero.starter.keyencrypt.core.EncryptType;
 import org.hzero.starter.keyencrypt.core.IEncryptionService;
 
 /**
@@ -73,7 +75,9 @@ public class GetPermissionFilter implements HelperFilter {
         Long id = null;
         try {
             if (encryptionService.isCipher(menuId)) {
+                EncryptContext.setEncryptType(EncryptType.ENCRYPT.name());
                 menuId = encryptionService.decrypt(menuId, "", context.request.accessToken);
+                EncryptContext.clear();
             }
             id = Long.parseLong(menuId);
         } catch (NumberFormatException e) {

@@ -1,8 +1,13 @@
 package org.hzero.gateway.helper.filter;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
@@ -20,6 +25,7 @@ import org.hzero.gateway.helper.entity.RequestContext;
  */
 @Component
 public class GetRequestRouteFilter implements HelperFilter {
+    private static final Logger logger = LoggerFactory.getLogger(GetRequestRouteFilter.class);
 
     private static final String ZUUL_SERVLET_PATH = "zuul/";
 
@@ -58,7 +64,12 @@ public class GetRequestRouteFilter implements HelperFilter {
         CommonRoute route = getRoute(requestUri, properties.getRoutes());
         if (route == null) {
             context.response.setStatus(CheckState.PERMISSION_SERVICE_ROUTE);
-            context.response.setMessage("This request mismatch any routes, uri: " + requestUri);
+            try {
+                context.response.setMessage("This request mismatch any routes, uri: " + URLEncoder.encode(requestUri, StandardCharsets.UTF_8.displayName()));
+            } catch (UnsupportedEncodingException e) {
+                logger.error("Error encode uri.", e);
+                context.response.setMessage("This request mismatch any routes.");
+            }
             return false;
         } else {
             final String trueUri = getRequestTruePath(requestUri, route.getPath());

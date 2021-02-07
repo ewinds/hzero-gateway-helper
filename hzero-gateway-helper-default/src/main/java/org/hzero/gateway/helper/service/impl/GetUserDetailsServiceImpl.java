@@ -15,7 +15,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.web.client.RestTemplate;
 
@@ -29,26 +28,18 @@ import org.hzero.gateway.helper.domain.CustomUserDetailsWithResult;
 import org.hzero.gateway.helper.entity.CheckState;
 import org.hzero.gateway.helper.service.GetUserDetailsService;
 
-@Service
 public class GetUserDetailsServiceImpl implements GetUserDetailsService {
-
-
     private static final Logger LOGGER = LoggerFactory.getLogger(GetUserDetailsService.class);
 
     private static final String PRINCIPAL = "principal";
-
     private static final String OAUTH2REQUEST = "oauth2Request";
-
     private static final String ADDITION_INFO = "additionInfo";
     private static final String ADDITION_INFO_MEANING = "additionInfoMeaning";
-
     private static final String USER_ID = "userId";
-
-    private static final String ANONYMOUS_LANGUAGE = "zh_CN";
-    private static final String ANONYMOUS_TIME_ZONE = "GMT+8";
+    protected static final String ANONYMOUS_LANGUAGE = "zh_CN";
+    protected static final String ANONYMOUS_TIME_ZONE = "GMT+8";
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-
     private final RestTemplate restTemplate;
     private final DiscoveryClient discoveryClient;
 
@@ -64,12 +55,19 @@ public class GetUserDetailsServiceImpl implements GetUserDetailsService {
     @Override
     @SuppressWarnings("unchecked")
     public CustomUserDetailsWithResult getUserDetails(String token) {
+        return getUserDetails(token, false);
+    }
+
+    public CustomUserDetailsWithResult getUserDetails(String token, boolean implicitCall) {
         HttpHeaders headers = new HttpHeaders();
         headers.set(TokenConstants.HEADER_AUTH, token);
         HttpEntity<String> entity = new HttpEntity<>("", headers);
         try {
-            ResponseEntity<String> responseEntity = restTemplate.exchange(getOauthUserApi(), HttpMethod.GET, entity, String.class);
+            ResponseEntity<String> responseEntity = restTemplate.exchange(getOauthUserApi() + (implicitCall ? "?implicitCall=true" : ""), HttpMethod.GET, entity, String.class);
             if (responseEntity.getStatusCode().is2xxSuccessful()) {
+                if (implicitCall) {
+                    return null;
+                }
                 CustomUserDetails userDetails = extractPrincipal(objectMapper.readValue(responseEntity.getBody(), Map.class));
                 return new CustomUserDetailsWithResult(userDetails, CheckState.SUCCESS_PASS_SITE);
             } else {
@@ -83,6 +81,13 @@ public class GetUserDetailsServiceImpl implements GetUserDetailsService {
         } catch (IOException e) {
             return new CustomUserDetailsWithResult(CheckState.EXCEPTION_GATEWAY_HELPER,
                     "Gateway helper error happened: " + e.toString());
+        }
+    }
+
+    public void getUserDetailsImplicit(String token) {
+        CustomUserDetailsWithResult userDetails = getUserDetails(token, true);
+        if (userDetails != null) {
+            LOGGER.debug("[AccessToken] {}", userDetails);
         }
     }
 
@@ -206,6 +211,18 @@ public class GetUserDetailsServiceImpl implements GetUserDetailsService {
             if (map.containsKey("apiEncryptFlag")) {
                 user.setApiEncryptFlag((Integer) map.get("apiEncryptFlag"));
             }
+            if (map.containsKey("apiReplayFlag")) {
+                user.setApiReplayFlag((Integer) map.get("apiReplayFlag"));
+            }
+
+            if (map.get("roleLabels") != null) {
+                Object roleLabels = map.get("roleLabels");
+                if (roleLabels instanceof Collection) {
+                    @SuppressWarnings("rawtypes")
+                    Collection<Object> labels = (Collection) roleLabels;
+                    user.setRoleLabels(labels.stream().map(String::valueOf).collect(Collectors.toSet()));
+                }
+            }
 
             if (isClientOnly) {
                 user.setClientId(Long.parseLong(String.valueOf(map.get("clientId"))));
@@ -309,6 +326,9 @@ public class GetUserDetailsServiceImpl implements GetUserDetailsService {
             }
             if (map.containsKey("apiEncryptFlag")) {
                 user.setApiEncryptFlag((Integer) map.get("apiEncryptFlag"));
+            }
+            if (map.containsKey("apiReplayFlag")) {
+                user.setApiReplayFlag((Integer) map.get("apiReplayFlag"));
             }
             return user;
         }
